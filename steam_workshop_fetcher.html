@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Steam Workshop Downloader</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
+</head>
+<body>
+    <h1>Steam Workshop Downloader</h1>
+    <input type="text" id="itemId" placeholder="Enter Workshop Item ID">
+    <button onclick="downloadItem()">Download</button>
+    <div id="result"></div>
+
+    <script>
+        async function downloadItem() {
+            const itemId = document.getElementById('itemId').value;
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Fetching item details...';
+
+            try {
+                // Use a CORS proxy to avoid cross-origin issues
+                const corsProxy = 'https://cors-anywhere.herokuapp.com/';
+                const apiUrl = `${corsProxy}https://api.steampowered.com/ISteamRemoteStorage/GetPublishedFileDetails/v1/`;
+                
+                const response = await axios.post(apiUrl, `itemcount=1&publishedfileids[0]=${itemId}`, {
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+                });
+
+                const itemDetails = response.data.response.publishedfiledetails[0];
+                const fileUrl = itemDetails.file_url;
+                const fileName = itemDetails.filename;
+
+                if (fileUrl) {
+                    resultDiv.innerHTML = `<a href="${fileUrl}" download="${fileName}">Click here to download ${fileName}</a>`;
+                } else {
+                    resultDiv.innerHTML = 'Unable to fetch download URL.';
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>
